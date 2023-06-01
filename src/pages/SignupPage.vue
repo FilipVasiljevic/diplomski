@@ -88,6 +88,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -109,7 +110,25 @@ export default defineComponent({
     registracijaKorisnika() {
       // sql INSERT INTO korisnici (imePrezime, korisnickiMail, korisnickaLozinka, adresa, grad, postanskiBroj)
       // VALUES (signup.imePrezime, signup.email, PASSWORD(signup.password), signup.adress, signup.city, signup.zipCode)
-      console.log("Korisnik je registriran");
+      //console.log("Korisnik je registriran");
+      let noviKorisnik = new FormData();
+      noviKorisnik.append("imePrezime", this.signup.imePrezime);
+      noviKorisnik.append("korisnickiMail", this.signup.email);
+      noviKorisnik.append("korisnickaLozinka", this.signup.password);
+      noviKorisnik.append("adresa", this.signup.adress);
+      noviKorisnik.append("grad", this.signup.city);
+      noviKorisnik.append("postanskiBroj", this.signup.zipCode);
+
+      // axios
+      //   .post("http://localhost:3000/newUser", noviKorisnik)
+      //   .then((response) => {
+      //     console.log(response);
+      //     this.$q.notify("Korisnik je uspješno dodan");
+      //     this.$router.push("/home");
+      //   })
+      //   .catch((error) => {
+      //     console.log(error);
+      //   });
     },
   },
 });

@@ -33,6 +33,38 @@ app.get("/items", function (request, response) {
   });
 });
 
+app.post("/newUser", function (request, response) {
+  // let signup = {};
+  // dbConn.query(
+  //   "INSERT INTO korisnici (imePrezime, korisnickiMail, korisnickaLozinka, adresa, grad, postanskiBroj) VALUES (",
+  //   signup.imePrezime,
+  //   signup.email,
+  //   PASSWORD(signup.password),
+  //   signup.adress,
+  //   signup.city,
+  //   signup.zipCode,
+  //   ")"
+  // );
+  response.set("Access-Control-Allow-Origin", "*");
+  const signup = request.body;
+  console.log(signup.imePrezime);
+  return response.send(
+    "POST metoda -> Create korisnici: imePrezime=" +
+      signup.imePrezime +
+      "; korisnickiMail=" +
+      signup.email +
+      "; korisnickaLozinka=" +
+      PASSWORD(signup.password) +
+      "; adresa=" +
+      signup.adress +
+      "; grad=" +
+      signup.city +
+      "; postanskiBroj=" +
+      signup.zipCode +
+      " ."
+  );
+});
+
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");
 });
