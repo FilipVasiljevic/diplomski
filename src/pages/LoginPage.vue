@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { defineComponent } from "vue";
 
 export default defineComponent({
@@ -55,6 +56,7 @@ export default defineComponent({
         email: "",
         password: "",
       },
+      porukaGreske: "",
     };
   },
 
@@ -64,6 +66,21 @@ export default defineComponent({
     },
     submitLogin() {
       console.log("Prijava");
+      const loginData = {
+        korisnickiMail: this.login.email,
+        korisnickaLozinka: this.login.password,
+      };
+
+      axios
+        .post("http://localhost:3000/login", loginData)
+        .then((response) => {
+          this.$q.notify({ message: "Uspješan login" });
+          this.$router.push("/");
+        })
+        .catch((error) => {
+          console.log(error);
+          this.$q.notify({ message: "Krivi podatci za login" });
+        });
     },
   },
 });

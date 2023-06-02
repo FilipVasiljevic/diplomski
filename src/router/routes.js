@@ -3,8 +3,16 @@ const routes = [
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
     children: [
-      { path: "/home", component: () => import("src/pages/HomePage.vue") },
-      { path: "/kosarica", component: () => import("pages/KosaricaPage.vue") },
+      { path: "/", component: () => import("pages/HomePage.vue") },
+      {
+        path: "/kosarica",
+        component: () => import("src/pages/ShoppingPage.vue"),
+      },
+      {
+        path: "/proizvod/:id",
+        component: () => import("pages/ItemPage.vue"),
+        props: true,
+      },
     ],
   },
   {
