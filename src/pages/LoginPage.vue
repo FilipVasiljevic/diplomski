@@ -47,16 +47,25 @@
 <script>
 import axios from "axios";
 import { defineComponent } from "vue";
+import { useDataStore } from "../store/dataStore.js";
 
 export default defineComponent({
   name: "LoginPage",
+
+  setup() {
+    const store = useDataStore();
+
+    return {
+      store,
+    };
+  },
+
   data() {
     return {
       login: {
         email: "",
         password: "",
       },
-      porukaGreske: "",
     };
   },
 
@@ -65,16 +74,33 @@ export default defineComponent({
       this.$router.push("/signup");
     },
     submitLogin() {
-      console.log("Prijava");
+      //console.log("Prijava");
+
+      const logiraniKorisnik = {
+        korisnickiMail: this.login.email,
+      };
+
       const loginData = {
         korisnickiMail: this.login.email,
         korisnickaLozinka: this.login.password,
       };
 
+      //console.log(logiraniKorisnik, loginData);
+
       axios
         .post("http://localhost:3000/login", loginData)
         .then((response) => {
           this.$q.notify({ message: "Uspješan login" });
+          this.store.loggedUser = true;
+          //console.log(logiraniKorisnik);
+          axios
+            .get("http://localhost:3000/user/" + this.login.email)
+            .then((response) => {
+              //console.log(response.data.data[0]);
+              this.store.userName = response.data.data[0].imePrezime;
+              this.store.userID = response.data.data[0].korisnikID;
+              //console.log(this.store.userName, this.store.userID);
+            });
           this.$router.push("/");
         })
         .catch((error) => {

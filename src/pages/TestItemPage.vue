@@ -1,51 +1,52 @@
 <template>
-  <div class="item-page">
-    <div class="item-details">
-      <h2 class="item-title">{{ item.nazivProizvoda }}</h2>
-      <p class="item-description">{{ item.opisProizvoda }}</p>
-      <p class="item-description">{{ item.cijenaProizvoda }} €</p>
-    </div>
-    <!-- <div class="item-carousel"> -->
-    <!-- <q-carousel animated infinite> -->
-    <!-- <q-carousel-slide
-          v-bind="$attrs"
-          v-for="image in images"
-          :key="image.slikaID"
-          :img-src="image.imgData"
-        /> -->
-    <!-- <q-carousel-slide
-          :name="2"
+  <q-page class="flex flex-center">
+    <div class="q-pa-md">
+      <div class="row justify-center q-gutter-sm">
+        <!-- <h2>{{ item.nazivProizvoda }}</h2>
+        <p>{{ items.opisProizvoda }}</p>
+        <div>
+          <p>{{ items.cijenaProizvoda }} €</p>
+        </div> -->
+      </div>
+      <!-- <img :src="image.imgData" /> -->
+      <q-carousel
+        arrows
+        autoplay
+        infinite
+        :slides-per-view="1"
+        :slides-per-group="1"
+        style="height: 300px"
+      >
+        <q-carousel-slide v-for="item in items" :key="item.slikaID">
+          <div>
+            <q-img :src="item.imgData" />
+          </div>
+        </q-carousel-slide>
+        <!-- <q-carousel-slide v-for="item in items" :key="item.slikaID">
+          <img :src="item.imgData" />
+        </q-carousel-slide> -->
+      </q-carousel>
+      <q-intersection v-for="item in items" :key="item.slikaID">
+        <q-card>
+          <q-card-section> <img :src="item.imgData" /> </q-card-section>
+        </q-card>
+      </q-intersection>
+
+      <!-- <q-carousel-slide
+          :name="1"
           img-src="https://cdn.quasar.dev/img/parallax1.jpg"
         />
         <q-carousel-slide
-          :name="3"
+          :name="2"
           img-src="https://cdn.quasar.dev/img/parallax2.jpg"
         />
         <q-carousel-slide
-          :name="4"
+          :name="3"
           img-src="https://cdn.quasar.dev/img/quasar.jpg"
-        />
-      </q-carousel> -->
-    <!-- </div> -->
-    <div class="item-action">
-      <q-btn
-        class="item-button"
-        color="primary"
-        label="Dodaj u košaricu"
-        icon-right="shopping_cart"
-        @click="buyNow(id, item.cijenaProizvoda)"
-      />
+        /> -->
+      <!-- </q-carousel> -->
     </div>
-    <div>
-      <q-intersection v-for="image in images" :key="image.slikaID">
-        <q-card>
-          <q-card-section>
-            <img :src="image.imgData" class="webshop-items" />
-          </q-card-section>
-        </q-card>
-      </q-intersection>
-    </div>
-  </div>
+  </q-page>
 </template>
 
 <script>
@@ -67,9 +68,7 @@ export default defineComponent({
 
   data() {
     return {
-      item: {},
-      images: [],
-      slide: ref(2),
+      items: [],
     };
   },
   props: {
@@ -85,16 +84,16 @@ export default defineComponent({
       .get("http://localhost:3000/item/" + idProizvoda)
       .then((response) => {
         //console.log(response.data);
-        this.item = response.data.data[0];
-        this.images = response.data.data;
-        this.images.forEach((image) => {
-          const bufferData = image.slika.data;
-          //console.log(bufferData);
+        this.items = response.data.data;
+        console.log(this.items[0]);
+        this.items.forEach((item) => {
+          const bufferData = item.slika.data;
           const uint8Array = new Uint8Array(bufferData);
-          const blob = new Blob([uint8Array], { type: "image/jpeg" });
+          const blob = new Blob([uint8Array], { type: "image/jpg" });
           const reader = new FileReader();
           reader.onloadend = () => {
-            image.imgData = reader.result;
+            item.imgData = reader.result;
+            console.log(item.imgData);
           };
           //console.log(item.imgData);
           reader.readAsDataURL(blob);
@@ -211,49 +210,3 @@ export default defineComponent({
   },
 });
 </script>
-
-<style scoped>
-.item-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.item-details {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.item-title {
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.item-description {
-  font-size: 16px;
-}
-
-.item-carousel {
-  max-width: 400px;
-  margin-bottom: 20px;
-}
-
-.item-action {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.item-button {
-  width: 200px;
-}
-
-.webshop-items {
-  max-height: 500px;
-  max-width: 500px;
-
-  min-height: 500px;
-  min-width: 500px;
-}
-</style>

@@ -119,24 +119,25 @@ export default defineComponent({
       // noviKorisnik.append("grad", this.signup.city);
       // noviKorisnik.append("postanskiBroj", this.signup.zipCode);
 
-      let noviKorisnik = JSON.stringify({
+      const signupData = {
         imePrezime: this.signup.imePrezime,
-        korisnickiMail: this.signup.korisnickiMail,
+        korisnickiMail: this.signup.email,
         korisnickaLozinka: this.signup.password,
         adresa: this.signup.adress,
         grad: this.signup.city,
         postanskiBroj: this.signup.zipCode,
-      });
+      };
 
       axios
-        .post("http://localhost:3000/newUser", noviKorisnik)
+        .post("http://localhost:3000/newUser", signupData)
         .then((response) => {
-          console.log(response);
+          //console.log(response);
           this.$q.notify("Korisnik je uspješno dodan");
-          this.$router.push("/home");
+          this.$router.push("/");
         })
         .catch((error) => {
-          console.log(error);
+          //console.log(error);
+          this.$q.notify("Korisnik s tim mailom več postoji");
         });
     },
   },
