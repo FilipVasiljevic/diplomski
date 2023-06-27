@@ -65,7 +65,23 @@ app.get("/items", (request, response) => {
 app.get("/shoppingItems", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   dbConn.query(
-    "SELECT stavkeracuna.stavkeID, stavkeracuna.racunID, stavkeracuna.proizvodID, stavkeracuna.kolicinaProizvoda, stavkeracuna.ukupnaCijenaProizvoda, proizvodi.nazivProizvoda AS nazivProizvoda, proizvodi.cijenaProizvoda AS pojedinacnaCijena, slikeproizvoda.slika AS slika FROM stavkeracuna LEFT JOIN proizvodi ON stavkeracuna.proizvodID = proizvodi.proizvodID LEFT JOIN (SELECT proizvodID, slika FROM slikeproizvoda GROUP BY proizvodID LIMIT 1) slikeproizvoda ON proizvodi.proizvodID = slikeproizvoda.proizvodID WHERE stavkeracuna.racunID = (SELECT MAX(racunID) FROM racuni WHERE racuni.iznosRacuna = 0);",
+    "SELECT stavkeracuna.stavkeID, stavkeracuna.racunID, stavkeracuna.proizvodID, stavkeracuna.kolicinaProizvoda, stavkeracuna.ukupnaCijenaProizvoda, proizvodi.nazivProizvoda AS nazivProizvoda, proizvodi.cijenaProizvoda AS pojedinacnaCijena, slikeproizvoda.slika AS slika FROM stavkeracuna LEFT JOIN proizvodi ON stavkeracuna.proizvodID = proizvodi.proizvodID LEFT JOIN (SELECT proizvodID, slika FROM slikeproizvoda GROUP BY proizvodID LIMIT 1) slikeproizvoda ON proizvodi.proizvodID = slikeproizvoda.proizvodID LEFT JOIN racuni ON stavkeracuna.racunID = racuni.racunID WHERE stavkeracuna.racunID = (SELECT MAX(racunID) FROM racuni WHERE racuni.iznosRacuna = 0) AND racuni.korisnikID IS NULL",
+    function (error, results, fields) {
+      if (error) throw error;
+      return response.send({
+        error: false,
+        data: results,
+        message: "Stavke racuna",
+      });
+    }
+  );
+});
+
+app.get("/shoppingItems/:id", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const userID = request.params.id
+  dbConn.query(
+    "SELECT stavkeracuna.stavkeID, stavkeracuna.racunID, stavkeracuna.proizvodID, stavkeracuna.kolicinaProizvoda, stavkeracuna.ukupnaCijenaProizvoda, proizvodi.nazivProizvoda AS nazivProizvoda, proizvodi.cijenaProizvoda AS pojedinacnaCijena, slikeproizvoda.slika AS slika FROM stavkeracuna LEFT JOIN proizvodi ON stavkeracuna.proizvodID = proizvodi.proizvodID LEFT JOIN (SELECT proizvodID, slika FROM slikeproizvoda GROUP BY proizvodID LIMIT 1) slikeproizvoda ON proizvodi.proizvodID = slikeproizvoda.proizvodID LEFT JOIN racuni ON stavkeracuna.racunID = racuni.racunID WHERE stavkeracuna.racunID = (SELECT MAX(racunID) FROM racuni WHERE racuni.iznosRacuna = 0) AND racuni.korisnikID = ?", [userID],
     function (error, results, fields) {
       if (error) throw error;
       return response.send({
@@ -355,6 +371,19 @@ app.post("/newBillItem", (request, response) => {
     }
   );
 });
+
+app.put("/newBillOwner", (request, response) =>{
+  response.set("Access-Control-Allow-Origin", "*");
+  const {korisnikID, racunID} = request.body;
+  //console.log(korisnikID, racunID);
+  const query = "UPDATE racuni SET korisnikID = ? WHERE racunID = ?";
+  dbConn.query(query, [korisnikID, racunID], (error, results) => {
+    if (error) throw error;
+    else{
+      return response.send({ message: "Update successful" });
+    }
+  })
+})
 
 app.delete("/deleteCartItem/:id", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");

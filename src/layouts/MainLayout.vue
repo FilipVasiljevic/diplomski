@@ -96,6 +96,7 @@ export default defineComponent({
       this.store.userID = "";
       this.store.userName = "";
       //console.log(this.store);
+      location.reload();
     },
   },
 });

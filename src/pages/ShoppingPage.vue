@@ -111,7 +111,37 @@ export default defineComponent({
   },
 
   mounted: function () {
-    axios
+    if(this.store.loggedUser){
+      axios
+      .get("http://localhost:3000/shoppingItems/" + this.store.userID)
+      .then((response) => {
+        this.shoppingItems = response.data.data;
+        //console.log(this.shoppingItems);
+        if (this.shoppingItems.length === 0) {
+          //console.log("Nema proizvoda u košarici");
+          this.$q.notify("Nema proizvoda u košarici");
+        } else {
+          this.shoppingItems.forEach((shoppingItem) => {
+            //console.log(item.slika.data);
+            const bufferData = shoppingItem.slika.data;
+            const uint8Array = new Uint8Array(bufferData);
+            const blob = new Blob([uint8Array], { type: "image/jpeg" });
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              shoppingItem.imgData = reader.result;
+            };
+            //console.log(item.imgData);
+            reader.readAsDataURL(blob);
+            //console.log(shoppingItem.pojedinacnaCijena);
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        this.$q.notify("Došlo je do pogreške");
+      });
+    }else{
+      axios
       .get("http://localhost:3000/shoppingItems")
       .then((response) => {
         this.shoppingItems = response.data.data;
@@ -139,6 +169,8 @@ export default defineComponent({
         console.log(error);
         this.$q.notify("Došlo je do pogreške");
       });
+    }
+    
   },
 
   methods: {

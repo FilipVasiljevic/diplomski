@@ -76,9 +76,9 @@ export default defineComponent({
     submitLogin() {
       //console.log("Prijava");
 
-      const logiraniKorisnik = {
-        korisnickiMail: this.login.email,
-      };
+      // const logiraniKorisnik = {
+      //   korisnickiMail: this.login.email,
+      // };
 
       const loginData = {
         korisnickiMail: this.login.email,
@@ -101,6 +101,21 @@ export default defineComponent({
               this.store.userID = response.data.data[0].korisnikID;
               //console.log(this.store.userName, this.store.userID);
             });
+            axios.get("http://localhost:3000/maxBills").then((response) =>{
+              var racun =  response.data.data[0];
+              if(racun.korisnikID == null){
+                console.log("Nema vlasnika racuna");
+                const racunZaUpdate = {
+                  korisnikID: this.store.userID,
+                  racunID: racun.racunID
+                }
+                axios.put("http://localhost:3000/newBillOwner", racunZaUpdate).then((response) => {
+                  console.log("Racun uspjesno azuriran")
+                }).catch((error) => {
+                  console.log(error)
+                })
+              }
+            })
           this.$router.push("/");
         })
         .catch((error) => {
