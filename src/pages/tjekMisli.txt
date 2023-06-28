@@ -1,0 +1,63 @@
+Ako napravim poziv na racune koji su veči od 0 i kojima je korisnik specifičan
+i dobijem više od jednog računa nazad onda treba postaviti pitanje ako bi se htjeli ti računi spojiti ili napraviti odvojeno
+To radim sa querijem "SELECT * FROM racuni WHERE korisnikID = ? AND iznosRacuna = 0", [korisnikID]
+Koliko sam dobio rezultata u frontednu provjeravam sa racuni.lenght > 1 ili racuni.lenght === 1
+U slucaju da ih je vise onda ide pitanje ej oces spojiti te racune ili ne?
+Ako da potrebno je izbrisati zadnji racun i promjeniti na stavkama racunID
+
+
+U košarici bi se trebalo provjeravati ako je taj proizvod več tamo. Ako je onda samo pribrojiti količinu
+query za to "SELECT * FROM stavkeracuna WHERE racunID = ? AND proizvodID = ?", [racunID, proizvodID]
+Opet ako se vrati da več postoji taj proizvod tj stavkaracuna.lenght === 1 onda ga samo pribrojiti. Staviti query
+"UPDATE stavkeracuna SET kolicinaProizvoda = ?, ukupnaCijenaProizvoda = ? WHERE stavkeID = ?",
+[kolicinaProizvoda, ukupnaCijenaProizvoda, stavkeID]
+
+
+Za search je ovo pomoc
+<template>
+  <div>
+    <q-input
+      outlined
+      v-model="searchQuery"
+      @input="handleSearch"
+      placeholder="Search..."
+    />
+    <q-list>
+      <q-item
+        v-for="item in filteredItems"
+        :key="item.id"
+      >
+        <q-item-section>{{ item.name }}</q-item-section>
+      </q-item>
+    </q-list>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      searchQuery: '',
+      items: [
+        { id: 1, name: 'Item 1' },
+        { id: 2, name: 'Item 2' },
+        { id: 3, name: 'Item 3' },
+      ],
+    };
+  },
+  computed: {
+    filteredItems() {
+      if (!this.searchQuery) {
+        return this.items;
+      }
+      const query = this.searchQuery.toLowerCase();
+      return this.items.filter(item => item.name.toLowerCase().includes(query));
+    },
+  },
+  methods: {
+    handleSearch() {
+      // Perform any additional actions upon search input
+    },
+  },
+};
+</script>

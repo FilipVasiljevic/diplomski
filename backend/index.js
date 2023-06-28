@@ -22,16 +22,18 @@ var dbConn = mysql.createConnection({
 
 dbConn.connect();
 
-//NAPRAVITI JEDAN DODATNI UVJET NA KOŠARICI. SAMO AKO JE IZNOS RAČUNA JEDNAK NULI. KADA SE RAČUN ZAVRŠAVA UBACUJE SE KORISNIK ID (PITA SE AKO SE KORISNIK ŽELI ULOGIRATI ILI REGISTRIRATI) I UKUPNA CIJENA.
-//MYB NAPRAVITI DA BUDE CARRUSEL NA SVAKOM ITEMU
-//DODATI U KOŠARICI KADA SE PRITINE OBRIŠI PROIZVOD DA SE POJAVI JESTE LI SIGURNI
-//NAPRAVITI U KOŠARICI PROMJENU KOLIČINE DO KRAJA
+//NAPRAVITI JEDAN DODATNI UVJET NA KOŠARICI. SAMO AKO JE IZNOS RAČUNA JEDNAK NULI. KADA SE RAČUN ZAVRŠAVA UBACUJE SE KORISNIK ID (PITA SE AKO SE KORISNIK ŽELI ULOGIRATI ILI REGISTRIRATI) I UKUPNA CIJENA. ++
+//MYB NAPRAVITI DA BUDE CARRUSEL NA SVAKOM ITEMU --
+//DODATI U KOŠARICI KADA SE PRITINE OBRIŠI PROIZVOD DA SE POJAVI JESTE LI SIGURNI ++
+//NAPRAVITI U KOŠARICI PROMJENU KOLIČINE DO KRAJA ++
 
 app.get("/users", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   dbConn.query("SELECT * FROM korisnici", function (error, results, fields) {
     if (error) throw error;
-    return response.send({ data: results });
+    const count = results.length;
+    const responseData = { Data: { userData: results }, count: count };
+    return response.send(responseData);
   });
 });
 
@@ -79,9 +81,10 @@ app.get("/shoppingItems", (request, response) => {
 
 app.get("/shoppingItems/:id", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
-  const userID = request.params.id
+  const userID = request.params.id;
   dbConn.query(
-    "SELECT stavkeracuna.stavkeID, stavkeracuna.racunID, stavkeracuna.proizvodID, stavkeracuna.kolicinaProizvoda, stavkeracuna.ukupnaCijenaProizvoda, proizvodi.nazivProizvoda AS nazivProizvoda, proizvodi.cijenaProizvoda AS pojedinacnaCijena, slikeproizvoda.slika AS slika FROM stavkeracuna LEFT JOIN proizvodi ON stavkeracuna.proizvodID = proizvodi.proizvodID LEFT JOIN (SELECT proizvodID, slika FROM slikeproizvoda GROUP BY proizvodID LIMIT 1) slikeproizvoda ON proizvodi.proizvodID = slikeproizvoda.proizvodID LEFT JOIN racuni ON stavkeracuna.racunID = racuni.racunID WHERE stavkeracuna.racunID = (SELECT MAX(racunID) FROM racuni WHERE racuni.iznosRacuna = 0) AND racuni.korisnikID = ?", [userID],
+    "SELECT stavkeracuna.stavkeID, stavkeracuna.racunID, stavkeracuna.proizvodID, stavkeracuna.kolicinaProizvoda, stavkeracuna.ukupnaCijenaProizvoda, proizvodi.nazivProizvoda AS nazivProizvoda, proizvodi.cijenaProizvoda AS pojedinacnaCijena, slikeproizvoda.slika AS slika FROM stavkeracuna LEFT JOIN proizvodi ON stavkeracuna.proizvodID = proizvodi.proizvodID LEFT JOIN (SELECT proizvodID, slika FROM slikeProizvoda GROUP BY proizvodID LIMIT 1) slikeproizvoda ON proizvodi.proizvodID = slikeproizvoda.proizvodID LEFT JOIN racuni ON stavkeracuna.racunID = racuni.racunID WHERE stavkeracuna.racunID = ( SELECT MAX(racunID) FROM racuni WHERE racuni.iznosRacuna = 0 AND racuni.korisnikID = ?)",
+    [userID],
     function (error, results, fields) {
       if (error) throw error;
       return response.send({
@@ -372,18 +375,18 @@ app.post("/newBillItem", (request, response) => {
   );
 });
 
-app.put("/newBillOwner", (request, response) =>{
+app.put("/newBillOwner", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
-  const {korisnikID, racunID} = request.body;
+  const { korisnikID, racunID } = request.body;
   //console.log(korisnikID, racunID);
   const query = "UPDATE racuni SET korisnikID = ? WHERE racunID = ?";
   dbConn.query(query, [korisnikID, racunID], (error, results) => {
     if (error) throw error;
-    else{
+    else {
       return response.send({ message: "Update successful" });
     }
-  })
-})
+  });
+});
 
 app.delete("/deleteCartItem/:id", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
