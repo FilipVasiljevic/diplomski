@@ -32,9 +32,41 @@ app.get("/users", (request, response) => {
   dbConn.query("SELECT * FROM korisnici", function (error, results, fields) {
     if (error) throw error;
     const count = results.length;
-    const responseData = { Data: { userData: results }, count: count };
+    const responseData = { data: { userdata: { results } }, count: count };
     return response.send(responseData);
   });
+});
+
+app.get("/bills", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  dbConn.query("SELECT * FROM racuni", function (error, results, fields) {
+    if (error) throw error;
+    return response.send({ data: results });
+  });
+});
+
+app.get("/billItems", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  dbConn.query(
+    "SELECT * FROM stavkeracuna ",
+    function (error, results, fields) {
+      if (error) throw error;
+      return response.send({ data: results });
+    }
+  );
+});
+
+app.get("/billAndBillItems", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  dbConn.query(
+    "SELECT * FROM racuni LEFT JOIN stavkeracuna ON racuni.racunID = stavkeracuna.racunID LEFT JOIN korisnici ON racuni.korisnikID = korisnici.korisnikID",
+    function (error, results, fields) {
+      if (error) throw error;
+      const count = results.length;
+      const responseData = { data: { userdata: { results } }, count: count };
+      return response.send(responseData);
+    }
+  );
 });
 
 app.get("/items", (request, response) => {
