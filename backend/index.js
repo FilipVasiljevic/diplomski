@@ -56,6 +56,24 @@ app.get("/billItems", (request, response) => {
   );
 });
 
+app.get("/billAndBillItems1", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const queryKorisniciRacuni =
+    "SELECT * FROM racuni LEFT JOIN korisnici ON racuni.korisnikID = korisnici.korisnikID";
+  const queryStavkeRacuna = "SELECT * FROM stavkeracuna";
+  dbConn.query(queryKorisniciRacuni, function (error, results, fields) {
+    if (error) throw error;
+    const count = results.length;
+    dbConn.query(queryStavkeRacuna, function (error, rezults, fields) {
+      if (error) throw error;
+      const responseData = {
+        data: { bills: { results }, count: count, billItems: { rezults } },
+      };
+      return response.send(responseData);
+    });
+  });
+});
+
 app.get("/billAndBillItems", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   dbConn.query(
@@ -63,7 +81,7 @@ app.get("/billAndBillItems", (request, response) => {
     function (error, results, fields) {
       if (error) throw error;
       const count = results.length;
-      const responseData = { data: { userdata: { results } }, count: count };
+      const responseData = { data: { userdata: { results }, count: count } };
       return response.send(responseData);
     }
   );

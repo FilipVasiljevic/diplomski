@@ -186,6 +186,7 @@ export default defineComponent({
             //console.log(response.data.data);
             this.$q.notify("Iznos računa je: " + response.data.data + " €");
             this.store.billID = "";
+            this.store.createdBill = false;
           })
           .catch((error) => {
             this.$q.notify("Došlo je do pogreške");
