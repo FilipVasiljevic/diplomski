@@ -9,7 +9,7 @@
         >
           <q-card class="my-card">
             <q-card-section>
-              <img :src="shoppingitem.imgData" />
+              <img :src="shoppingitem.imgData" class="webshop-items" />
               <div class="text-h6">{{ shoppingitem.nazivProizvoda }}</div>
               <div class="text-subtitle2">
                 Količina: {{ shoppingitem.kolicinaProizvoda }}
@@ -46,7 +46,10 @@
       </div>
     </div>
     <div v-if="this.shoppingItems != 0">
-      <q-btn @click="zatvoriRacun()" label="Završi kupovinu"></q-btn>
+      <q-btn
+        @click="zatvoriRacun(shoppingItems.racunID)"
+        label="Završi kupovinu"
+      ></q-btn>
       <div v-if="!this.store.loggedUser">
         <q-dialog v-model="dialogVisible">
           <q-card>
@@ -106,12 +109,13 @@ export default defineComponent({
         cijenaProizvoda: "",
         opisProizvoda: "",
       },
+      racunID: "",
       dialogVisible: false,
     };
   },
 
   mounted: function () {
-    //console.log(this.store.loggedUser, this.store.userID, this.store.userName);
+    //console.log(this.store.userName, this.store.userID);
     if (this.store.loggedUser) {
       axios
         .get("http://localhost:3000/shoppingItems/" + this.store.userID)
@@ -124,6 +128,7 @@ export default defineComponent({
           } else {
             this.shoppingItems.forEach((shoppingItem) => {
               //console.log(item.slika.data);
+              this.racunID = shoppingItem.racunID;
               const bufferData = shoppingItem.slika.data;
               const uint8Array = new Uint8Array(bufferData);
               const blob = new Blob([uint8Array], { type: "image/jpeg" });
@@ -133,6 +138,7 @@ export default defineComponent({
               };
               //console.log(item.imgData);
               reader.readAsDataURL(blob);
+              //console.log(this.racunID);
               //console.log(shoppingItem.pojedinacnaCijena);
             });
           }
@@ -175,18 +181,83 @@ export default defineComponent({
 
   methods: {
     zatvoriRacun() {
+      //console.log(this.racunID);
       if (!this.store.loggedUser) {
         this.dialogVisible = true;
       } else {
         console.log("Korisnik je prijavljen");
-        var id = this.store.billID;
         axios
-          .put("http://localhost:3000/closeBill/" + id)
+          .put("http://localhost:3000/closeBill/" + this.racunID)
           .then((response) => {
             //console.log(response.data.data);
             this.$q.notify("Iznos računa je: " + response.data.data + " €");
             this.store.billID = "";
             this.store.createdBill = false;
+            if (this.store.loggedUser) {
+              axios
+                .get("http://localhost:3000/shoppingItems/" + this.store.userID)
+                .then((response) => {
+                  this.shoppingItems = response.data.data;
+                  //console.log(this.shoppingItems);
+                  if (this.shoppingItems.length === 0) {
+                    //console.log("Nema proizvoda u košarici");
+                    this.$q.notify("Nema proizvoda u košarici");
+                  } else {
+                    this.shoppingItems.forEach((shoppingItem) => {
+                      //console.log(item.slika.data);
+                      this.racunID = shoppingItem.racunID;
+                      const bufferData = shoppingItem.slika.data;
+                      const uint8Array = new Uint8Array(bufferData);
+                      const blob = new Blob([uint8Array], {
+                        type: "image/jpeg",
+                      });
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        shoppingItem.imgData = reader.result;
+                      };
+                      //console.log(item.imgData);
+                      reader.readAsDataURL(blob);
+                      //console.log(this.racunID);
+                      //console.log(shoppingItem.pojedinacnaCijena);
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log(error);
+                  this.$q.notify("Došlo je do pogreške");
+                });
+            } else {
+              axios
+                .get("http://localhost:3000/shoppingItems")
+                .then((response) => {
+                  this.shoppingItems = response.data.data;
+                  //console.log(this.shoppingItems);
+                  if (this.shoppingItems.length === 0) {
+                    //console.log("Nema proizvoda u košarici");
+                    this.$q.notify("Nema proizvoda u košarici");
+                  } else {
+                    this.shoppingItems.forEach((shoppingItem) => {
+                      //console.log(item.slika.data);
+                      const bufferData = shoppingItem.slika.data;
+                      const uint8Array = new Uint8Array(bufferData);
+                      const blob = new Blob([uint8Array], {
+                        type: "image/jpeg",
+                      });
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        shoppingItem.imgData = reader.result;
+                      };
+                      //console.log(item.imgData);
+                      reader.readAsDataURL(blob);
+                      //console.log(shoppingItem.pojedinacnaCijena);
+                    });
+                  }
+                })
+                .catch((error) => {
+                  console.log(error);
+                  this.$q.notify("Došlo je do pogreške");
+                });
+            }
           })
           .catch((error) => {
             this.$q.notify("Došlo je do pogreške");
@@ -463,3 +534,13 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.webshop-items {
+  max-height: 500px;
+  max-width: 500px;
+
+  min-height: 500px;
+  min-width: 500px;
+}
+</style>

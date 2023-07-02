@@ -17,11 +17,22 @@
             v-model="pretrazivanje"
             label="Pretraživanje"
             label-color="black"
+            @input="pretraga()"
           >
             <template v-slot:prepend>
               <q-icon name="search" />
             </template>
           </q-input>
+          <q-list>
+            <q-item
+              clickable
+              v-for="item in filteredItems"
+              :key="item.proizvodID"
+              @click="otvoriProizvod(item.proizvodID)"
+            >
+              <q-item-section>{{ item.nazivProizvoda }}</q-item-section>
+            </q-item>
+          </q-list>
         </q-toolbar-title>
 
         <div>
@@ -78,7 +89,30 @@ export default defineComponent({
     };
   },
 
+  data() {
+    return {
+      pretrazivanje: "",
+      items: this.store.items,
+      odradenoPretrazivanje: false,
+    };
+  },
+
+  computed: {
+    filteredItems() {
+      if (!this.pretrazivanje) {
+        return this.items;
+      }
+      const query = this.pretrazivanje.toLowerCase();
+      return this.items.filter((item) =>
+        item.nazivProizvoda.toLowerCase().includes(query)
+      );
+    },
+  },
+
   methods: {
+    pretraga() {
+      // this.odradenoPretrazivanje = true;
+    },
     openProizvodi() {
       this.$router.push("/");
     },
@@ -97,6 +131,12 @@ export default defineComponent({
       this.store.userName = "";
       //console.log(this.store);
       location.reload();
+    },
+    otvoriProizvod(id) {
+      this.$router.push({
+        path: "/proizvod/" + id,
+        params: { id: id },
+      });
     },
   },
 });

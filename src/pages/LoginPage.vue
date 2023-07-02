@@ -100,22 +100,81 @@ export default defineComponent({
               this.store.userName = response.data.data[0].imePrezime;
               this.store.userID = response.data.data[0].korisnikID;
               //console.log(this.store.userName, this.store.userID);
-            });
-            axios.get("http://localhost:3000/maxBills").then((response) =>{
-              var racun =  response.data.data[0];
-              if(racun.korisnikID == null){
-                console.log("Nema vlasnika racuna");
-                const racunZaUpdate = {
-                  korisnikID: this.store.userID,
-                  racunID: racun.racunID
-                }
-                axios.put("http://localhost:3000/newBillOwner", racunZaUpdate).then((response) => {
-                  console.log("Racun uspjesno azuriran")
-                }).catch((error) => {
-                  console.log(error)
-                })
+              if (!this.store.questionAwns) {
+                axios
+                  .get("http://localhost:3000/userBills/" + this.store.userID)
+                  .then((response) => {
+                    if (response.data.data.length > 1) {
+                      //console.log("Korisnik ima više otvorenih računa");
+                      this.$q
+                        .dialog({
+                          title: "Korisnik več ima otvoreni račun",
+                          message:
+                            "Želite li nove stavke dodati na stari račun ili otvoriti novi?",
+                          ok: { push: true, label: "Dodaj na postojeći" },
+                          cancel: { push: true, label: "Dodaj na novi račun" },
+                          persistent: true,
+                        })
+                        .onOk(() => {
+                          const push = {
+                            racunIDnew:
+                              response.data.data[response.data.data.length - 2]
+                                .racunID,
+                            racunIDold:
+                              response.data.data[response.data.data.length - 1]
+                                .racunID,
+                          };
+                          //console.log(push);
+                          this.store.questionAwns = true;
+                          this.store.billID =
+                            response.data.data[
+                              response.data.data.length - 2
+                            ].racunID;
+                          axios
+                            .put("http://localhost:3000/updateBillItems", push)
+                            .then((response) => {
+                              this.$q.notify("Dodano na postojeći račun");
+                            })
+                            .catch((error) => {
+                              console.log(error);
+                            });
+                        })
+                        .onCancel(() => {
+                          this.$q.notify("Dodano na novi račun");
+                          this.store.billID =
+                            response.data.data[
+                              response.data.data.length - 1
+                            ].racunID;
+                        })
+                        .onDismiss(() => {
+                          // console.log('I am triggered on both OK and Cancel')
+                        });
+                    } else {
+                      //console.log("Korisnik ima samo jedan račuin");
+                    }
+                  });
               }
-            })
+              //console.log(this.store.userName, this.store.userID);
+            });
+          axios.get("http://localhost:3000/maxBills").then((response) => {
+            var racun = response.data.data[0];
+            if (racun.korisnikID == null) {
+              //console.log("Nema vlasnika racuna");
+              const racunZaUpdate = {
+                korisnikID: this.store.userID,
+                racunID: racun.racunID,
+              };
+              axios
+                .put("http://localhost:3000/newBillOwner", racunZaUpdate)
+                .then((response) => {
+                  //console.log("Racun uspjesno azuriran")
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            }
+          });
+
           this.$router.push("/");
         })
         .catch((error) => {

@@ -129,6 +129,74 @@ app.get("/shoppingItems", (request, response) => {
   );
 });
 
+app.get("/userBills/:id", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const userID = request.params.id;
+  dbConn.query(
+    "SELECT * FROM racuni WHERE korisnikID = ? AND iznosRacuna = 0",
+    [userID],
+    function (error, results, fields) {
+      if (error) throw error;
+      const count = results.length;
+      return response.send({
+        error: false,
+        data: results,
+        count: count,
+      });
+    }
+  );
+});
+
+app.get("/checkItem", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const racunID = request.query.racunID;
+  const proizvodID = request.query.proizvodID;
+  const query =
+    "SELECT * FROM stavkeracuna LEFT JOIN proizvodi on stavkeracuna.proizvodID = proizvodi.proizvodID WHERE stavkeracuna.racunID = ? AND stavkeracuna.proizvodID = ?";
+  //console.log(racunID, proizvodID);
+  dbConn.query(query, [racunID, proizvodID], (error, results) => {
+    if (error) throw error;
+    return response.send({ data: results });
+  });
+});
+
+app.put("/updateItem", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const { kolicinaProizvoda, ukupnaCijenaProizvoda, stavkeID } = request.body;
+  const query =
+    "UPDATE stavkeracuna SET kolicinaProizvoda = ?, ukupnaCijenaProizvoda = ? WHERE stavkeID = ?";
+  dbConn.query(
+    query,
+    [kolicinaProizvoda, ukupnaCijenaProizvoda, stavkeID],
+    (error, results) => {
+      if (error) {
+        console.error("Error executing update query:", error);
+        response.status(500).send("Error executing update query");
+      } else {
+        return response.send({ message: "Update successful" });
+      }
+    }
+  );
+});
+
+app.put("/updateBillItems", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const { racunIDnew, racunIDold } = request.body;
+  const query = "UPDATE stavkeracuna SET racunID = ? WHERE racunID = ?";
+  const queryRacun = "DELETE FROM racuni WHERE racunID = ?";
+  dbConn.query(query, [racunIDnew, racunIDold], (error, results) => {
+    if (error) {
+      console.error("Error executing update query:", error);
+      response.status(500).send("Error executing update query");
+    } else {
+      dbConn.query(queryRacun, [racunIDold], (error, results) => {
+        if (error) throw error;
+        return response.send({ message: "Update successful" });
+      });
+    }
+  });
+});
+
 app.get("/shoppingItems/:id", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   const userID = request.params.id;
@@ -375,7 +443,10 @@ app.post("/newBillnoUser", (request, response) => {
     if (error) {
       console.error("Error inserting new bill:", error);
     } else {
-      return response.send({ message: "New bill opened successfully" });
+      return response.send({
+        message: "New bill opened successfully",
+        data: results,
+      });
     }
   });
 });

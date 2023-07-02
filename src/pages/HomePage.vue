@@ -76,6 +76,8 @@ export default defineComponent({
       .then((response) => {
         //console.log(response.data);
         this.items = response.data.data;
+        this.store.items = response.data.data;
+        console.log(this.store.items);
         this.items.forEach((item) => {
           //console.log(item.slika.data);
           const bufferData = item.slika.data;
@@ -136,7 +138,7 @@ export default defineComponent({
               axios
                 .post("http://localhost:3000/newBillnoUser")
                 .then((response) => {
-                  //console.log(response);
+                  console.log(response);
                   //this.$q.notify("Stvoren novi racun");
                 });
             } else {
@@ -162,10 +164,48 @@ export default defineComponent({
                 ukupnaCijenaProizvoda: cijena,
               };
               axios
-                .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                .get("http://localhost:3000/checkItem", {
+                  params: {
+                    racunID: this.maxRacun.racunID,
+                    proizvodID: id,
+                  },
+                })
                 .then((response) => {
-                  //console.log(response);
-                  this.$q.notify("Dodano u košaricu");
+                  console.log(response.data.data);
+                  if (response.data.data.length < 1) {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka ne postoji");
+                    axios
+                      .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                      .then((response) => {
+                        //console.log(response);
+                        this.$q.notify("Dodano u košaricu");
+                      });
+                  } else {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka vec postoji");
+                    var brojPostojeci = parseInt(
+                      response.data.data[0].kolicinaProizvoda
+                    );
+                    var dodatak = parseInt(data);
+                    var zbroj = brojPostojeci + dodatak;
+                    //console.log(zbroj);
+                    const stavka = {
+                      kolicinaProizvoda: zbroj,
+                      ukupnaCijenaProizvoda:
+                        zbroj * response.data.data[0].cijenaProizvoda,
+                      stavkeID: response.data.data[0].stavkeID,
+                    };
+                    //console.log(stavka);
+                    axios
+                      .put("http://localhost:3000/updateItem", stavka)
+                      .then((response) => {
+                        this.$q.notify("Uspjesno azurirana kolicina");
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+                  }
                 });
             });
 
@@ -183,10 +223,48 @@ export default defineComponent({
                 ukupnaCijenaProizvoda: cijena,
               };
               axios
-                .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                .get("http://localhost:3000/checkItem", {
+                  params: {
+                    racunID: this.maxRacun.racunID,
+                    proizvodID: id,
+                  },
+                })
                 .then((response) => {
-                  //console.log(response);
-                  this.$q.notify("Dodano u košaricu");
+                  console.log(response.data.data);
+                  if (response.data.data.length < 1) {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka ne postoji");
+                    axios
+                      .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                      .then((response) => {
+                        //console.log(response);
+                        this.$q.notify("Dodano u košaricu");
+                      });
+                  } else {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka vec postoji");
+                    var brojPostojeci = parseInt(
+                      response.data.data[0].kolicinaProizvoda
+                    );
+                    var dodatak = parseInt(data);
+                    var zbroj = brojPostojeci + dodatak;
+                    //console.log(zbroj);
+                    const stavka = {
+                      kolicinaProizvoda: zbroj,
+                      ukupnaCijenaProizvoda:
+                        zbroj * response.data.data[0].cijenaProizvoda,
+                      stavkeID: response.data.data[0].stavkeID,
+                    };
+                    //console.log(stavka);
+                    axios
+                      .put("http://localhost:3000/updateItem", stavka)
+                      .then((response) => {
+                        this.$q.notify("Uspjesno azurirana kolicina");
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+                  }
                 });
             });
           }
