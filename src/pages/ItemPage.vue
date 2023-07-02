@@ -109,7 +109,7 @@ export default defineComponent({
   methods: {
     buyNow(id, price) {
       var kolicina;
-      console.log(id);
+      //console.log(id);
       this.$q
         .dialog({
           title: "Dodaj u košaricu",
@@ -118,7 +118,7 @@ export default defineComponent({
             model: 1,
             type: "number",
 
-            min: 0,
+            min: 1,
             step: 1,
           },
           ok: {
@@ -148,8 +148,8 @@ export default defineComponent({
               axios
                 .post("http://localhost:3000/newBillnoUser")
                 .then((response) => {
-                  //console.log(response);
-                  this.$q.notify("Stvoren novi racun");
+                  console.log(response);
+                  //this.$q.notify("Stvoren novi racun");
                 });
             } else {
               this.store.createdBill = true;
@@ -160,11 +160,12 @@ export default defineComponent({
                 .post("http://localhost:3000/newBill", racun)
                 .then((response) => {
                   //console.log(response);
-                  this.$q.notify("Stvoren novi racun");
+                  //this.$q.notify("Stvoren novi racun");
                 });
             }
             axios.get("http://localhost:3000/maxBills").then((response) => {
               this.maxRacun = response.data.data[0];
+              this.store.billID = this.maxRacun.racunID;
               var cijena = kolicina * price;
               const stavkaRacuna = {
                 racunID: this.maxRacun.racunID,
@@ -173,10 +174,48 @@ export default defineComponent({
                 ukupnaCijenaProizvoda: cijena,
               };
               axios
-                .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                .get("http://localhost:3000/checkItem", {
+                  params: {
+                    racunID: this.maxRacun.racunID,
+                    proizvodID: id,
+                  },
+                })
                 .then((response) => {
-                  console.log(response);
-                  this.$q.notify("Dodano na racun");
+                  console.log(response.data.data);
+                  if (response.data.data.length < 1) {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka ne postoji");
+                    axios
+                      .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                      .then((response) => {
+                        //console.log(response);
+                        this.$q.notify("Dodano u košaricu");
+                      });
+                  } else {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka vec postoji");
+                    var brojPostojeci = parseInt(
+                      response.data.data[0].kolicinaProizvoda
+                    );
+                    var dodatak = parseInt(data);
+                    var zbroj = brojPostojeci + dodatak;
+                    //console.log(zbroj);
+                    const stavka = {
+                      kolicinaProizvoda: zbroj,
+                      ukupnaCijenaProizvoda:
+                        zbroj * response.data.data[0].cijenaProizvoda,
+                      stavkeID: response.data.data[0].stavkeID,
+                    };
+                    //console.log(stavka);
+                    axios
+                      .put("http://localhost:3000/updateItem", stavka)
+                      .then((response) => {
+                        this.$q.notify("Uspjesno azurirana kolicina");
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+                  }
                 });
             });
 
@@ -185,6 +224,7 @@ export default defineComponent({
           } else {
             axios.get("http://localhost:3000/maxBills").then((response) => {
               this.maxRacun = response.data.data[0];
+              this.store.billID = this.maxRacun.racunID;
               var cijena = kolicina * price;
               const stavkaRacuna = {
                 racunID: this.maxRacun.racunID,
@@ -193,10 +233,48 @@ export default defineComponent({
                 ukupnaCijenaProizvoda: cijena,
               };
               axios
-                .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                .get("http://localhost:3000/checkItem", {
+                  params: {
+                    racunID: this.maxRacun.racunID,
+                    proizvodID: id,
+                  },
+                })
                 .then((response) => {
-                  console.log(response);
-                  this.$q.notify("Dodano na racun");
+                  console.log(response.data.data);
+                  if (response.data.data.length < 1) {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka ne postoji");
+                    axios
+                      .post("http://localhost:3000/newBillItem", stavkaRacuna)
+                      .then((response) => {
+                        //console.log(response);
+                        this.$q.notify("Dodano u košaricu");
+                      });
+                  } else {
+                    //console.log(response.data.data.length);
+                    console.log("Stavka vec postoji");
+                    var brojPostojeci = parseInt(
+                      response.data.data[0].kolicinaProizvoda
+                    );
+                    var dodatak = parseInt(data);
+                    var zbroj = brojPostojeci + dodatak;
+                    //console.log(zbroj);
+                    const stavka = {
+                      kolicinaProizvoda: zbroj,
+                      ukupnaCijenaProizvoda:
+                        zbroj * response.data.data[0].cijenaProizvoda,
+                      stavkeID: response.data.data[0].stavkeID,
+                    };
+                    //console.log(stavka);
+                    axios
+                      .put("http://localhost:3000/updateItem", stavka)
+                      .then((response) => {
+                        this.$q.notify("Uspjesno azurirana kolicina");
+                      })
+                      .catch((error) => {
+                        console.log(error);
+                      });
+                  }
                 });
             });
           }
