@@ -23,7 +23,7 @@
               <q-icon name="search" />
             </template>
           </q-input>
-          <q-list>
+          <q-list v-if="pretrazivanje">
             <q-item
               clickable
               v-for="item in filteredItems"
@@ -77,6 +77,7 @@
 <script>
 import { defineComponent, ref } from "vue";
 import { useDataStore } from "../store/dataStore.js";
+import axios from "axios";
 
 export default defineComponent({
   name: "MainLayout",
@@ -92,9 +93,22 @@ export default defineComponent({
   data() {
     return {
       pretrazivanje: "",
-      items: this.store.items,
+      items: [],
       odradenoPretrazivanje: false,
     };
+  },
+
+  mounted: function () {
+    axios
+      .get("http://localhost:3000/items")
+      .then((response) => {
+        //console.log(response.data);
+        this.items = response.data.data;
+      })
+      .catch((error) => {
+        this.$q.notify("Nema proizvoda");
+        console.log(error);
+      });
   },
 
   computed: {
@@ -137,6 +151,7 @@ export default defineComponent({
         path: "/proizvod/" + id,
         params: { id: id },
       });
+      this.pretrazivanje = "";
     },
   },
 });

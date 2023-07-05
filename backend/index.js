@@ -41,7 +41,9 @@ app.get("/bills", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
   dbConn.query("SELECT * FROM racuni", function (error, results, fields) {
     if (error) throw error;
-    return response.send({ data: results });
+    const count = results.length;
+    const responseData = { data: { userdata: { results }, count: count } };
+    return response.send(responseData);
   });
 });
 
@@ -51,27 +53,163 @@ app.get("/billItems", (request, response) => {
     "SELECT * FROM stavkeracuna ",
     function (error, results, fields) {
       if (error) throw error;
-      return response.send({ data: results });
+      const count = results.length;
+      const responseData = { data: { userdata: { results }, count: count } };
+      return response.send(responseData);
+    }
+  );
+});
+
+app.get("/everything", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  dbConn.query("SELECT * FROM racuni", function (error, results, fields) {
+    if (error) throw error;
+    const count = results.length;
+    dbConn.query("SELECT * FROM stavkeracuna ", (error, stavke) => {
+      if (error) throw error;
+      const countSt = stavke.length;
+      const responseData = {
+        data: {
+          racuni: { results, count: count },
+          stavke: { stavke, countSt: countSt },
+        },
+      };
+      return response.send(responseData);
+    });
+  });
+});
+
+app.get("/checkAndUpdateItems/:id", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+
+  const racunID = request.params.id;
+
+  dbConn.query(
+    "SELECT * FROM stavkeracuna WHERE racunID = ?",
+    [racunID],
+    function (error, results, fields) {
+      if (error) throw error;
+
+      const proizvodMap = new Map();
+
+      // Group results by proizvodID
+      for (const result of results) {
+        if (proizvodMap.has(result.proizvodID)) {
+          proizvodMap.get(result.proizvodID).push(result);
+        } else {
+          proizvodMap.set(result.proizvodID, [result]);
+        }
+      }
+
+      // Check if any proizvodID has at least two results
+      let hasDuplicates = false;
+      let firstResult;
+      let secondResult;
+      for (const proizvodResults of proizvodMap.values()) {
+        if (proizvodResults.length >= 2) {
+          hasDuplicates = true;
+          firstResult = proizvodResults[0];
+          secondResult = proizvodResults[1];
+          break;
+        }
+      }
+
+      if (hasDuplicates) {
+        const sumKolicina =
+          firstResult.kolicinaProizvoda + secondResult.kolicinaProizvoda;
+        const sumCijena =
+          firstResult.ukupnaCijenaProizvoda +
+          secondResult.ukupnaCijenaProizvoda;
+
+        dbConn.query(
+          "UPDATE stavkeracuna SET kolicinaProizvoda = ?, ukupnaCijenaProizvoda = ? WHERE stavkeID = ?",
+          [sumKolicina, sumCijena, firstResult.stavkeID],
+          function (updateError, updateResults, updateFields) {
+            if (updateError) throw updateError;
+
+            dbConn.query(
+              "DELETE FROM stavkeracuna WHERE stavkeID = ?",
+              [secondResult.stavkeID],
+              function (deleteError, deleteResults, deleteFields) {
+                if (deleteError) throw deleteError;
+
+                return response.send(results);
+              }
+            );
+          }
+        );
+      } else {
+        return response.send(results);
+      }
+    }
+  );
+});
+
+app.get("/billItems", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  dbConn.query(
+    "SELECT * FROM stavkeracuna ",
+    function (error, results, fields) {
+      if (error) throw error;
+      const count = results.length;
+      const responseData = { data: { userdata: { results } }, count: count };
+      return response.send(responseData);
     }
   );
 });
 
 app.get("/billAndBillItems1", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
-  const queryKorisniciRacuni =
-    "SELECT * FROM racuni LEFT JOIN korisnici ON racuni.korisnikID = korisnici.korisnikID";
-  const queryStavkeRacuna = "SELECT * FROM stavkeracuna";
-  dbConn.query(queryKorisniciRacuni, function (error, results, fields) {
-    if (error) throw error;
-    const count = results.length;
-    dbConn.query(queryStavkeRacuna, function (error, rezults, fields) {
+  dbConn.query(
+    "SELECT * FROM racuni LEFT JOIN stavkeracuna ON racuni.racunID = stavkeracuna.racunID LEFT JOIN korisnici ON racuni.korisnikID = korisnici.korisnikID",
+    function (error, results, fields) {
       if (error) throw error;
-      const responseData = {
-        data: { bills: { results }, count: count, billItems: { rezults } },
+      const count = results.length;
+      const responseData = [];
+      results.forEach((result) => {
+        const existingData = responseData.find(
+          (data) => data.racunID === result.racunID
+        );
+
+        if (existingData) {
+          existingData.stavkeRacuna.push({
+            stavkeID: result.stavkeID,
+            proizvodID: result.proizvodID,
+            kolicinaProizvoda: result.kolicinaProizvoda,
+            ukupnaCijenaProizvoda: result.ukupnaCijenaProizvoda,
+          });
+          existingData.countst = existingData.stavkeRacuna.length; // Add count property
+        } else {
+          responseData.push({
+            racunID: result.racunID,
+            korisnikID: result.korisnikID,
+            datumRacuna: result.datumRacuna,
+            iznosRacuna: result.iznosRacuna,
+            imePrezime: result.imePrezime,
+            korisnickiMail: result.korisnickiMail,
+            korisnickaLozinka: result.korisnickaLozinka,
+            adresa: result.adresa,
+            grad: result.grad,
+            postanskiBroj: result.postanskiBroj,
+            stavkeRacuna: [
+              {
+                stavkeID: result.stavkeID,
+                proizvodID: result.proizvodID,
+                kolicinaProizvoda: result.kolicinaProizvoda,
+                ukupnaCijenaProizvoda: result.ukupnaCijenaProizvoda,
+              },
+            ],
+            countst: 1,
+          });
+        }
+      });
+      const endResponseData = {
+        data: { userdata: { responseData }, count: count },
       };
-      return response.send(responseData);
-    });
-  });
+
+      return response.send(endResponseData);
+    }
+  );
 });
 
 app.get("/billAndBillItems", (request, response) => {
@@ -194,6 +332,88 @@ app.put("/updateBillItems", (request, response) => {
         return response.send({ message: "Update successful" });
       });
     }
+  });
+});
+
+app.put("/updateBillItemss", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const { racunIDnew, racunIDold } = request.body;
+
+  const getExistingItemsQuery = "SELECT * FROM stavkeracuna WHERE racunID = ?";
+  dbConn.query(getExistingItemsQuery, [racunIDold], (error, existingItems) => {
+    if (error) {
+      console.error(
+        "Error executing query to retrieve existing bill items:",
+        error
+      );
+      response.status(500).send("Error retrieving existing bill items");
+      return;
+    }
+
+    const updateItemStmt =
+      "UPDATE stavkeracuna SET kolicinaProizvoda = ?, ukupnaCijenaProizvoda = ? WHERE stavkeID = ?";
+    const insertItemStmt =
+      "INSERT INTO stavkeracuna (racunID, proizvodID, kolicinaProizvoda, ukupnaCijenaProizvoda) VALUES (?, ?, ?, ?)";
+
+    const newItems = request.body.stavkeRacuna;
+    const updatedItems = [];
+    const addedItems = [];
+
+    newItems.forEach((newItem) => {
+      const existingItem = existingItems.find(
+        (item) => item.proizvodID === newItem.proizvodID
+      );
+
+      if (existingItem) {
+        const updatedQuantity =
+          existingItem.kolicinaProizvoda + newItem.kolicinaProizvoda;
+        const updatedPriceSum =
+          existingItem.ukupnaCijenaProizvoda + newItem.ukupnaCijenaProizvoda;
+
+        dbConn.query(
+          updateItemStmt,
+          [updatedQuantity, updatedPriceSum, existingItem.stavkeID],
+          (error, results) => {
+            if (error) {
+              console.error("Error updating existing bill item:", error);
+            }
+          }
+        );
+
+        updatedItems.push(existingItem);
+      } else {
+        dbConn.query(
+          insertItemStmt,
+          [
+            racunIDnew,
+            newItem.proizvodID,
+            newItem.kolicinaProizvoda,
+            newItem.ukupnaCijenaProizvoda,
+          ],
+          (error, results) => {
+            if (error) {
+              console.error("Error inserting new bill item:", error);
+            }
+          }
+        );
+
+        addedItems.push(newItem);
+      }
+    });
+
+    const deleteBillQuery = "DELETE FROM racuni WHERE racunID = ?";
+    dbConn.query(deleteBillQuery, [racunIDold], (error, results) => {
+      if (error) {
+        console.error("Error deleting old bill:", error);
+        response.status(500).send("Error deleting old bill");
+      } else {
+        response.send({
+          updatedItems,
+          addedItems,
+          message: "Update successful",
+        });
+      }
+    });
   });
 });
 

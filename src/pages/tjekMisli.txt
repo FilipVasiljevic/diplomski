@@ -3,7 +3,7 @@ i dobijem više od jednog računa nazad onda treba postaviti pitanje ako bi se h
 To radim sa querijem "SELECT * FROM racuni WHERE korisnikID = ? AND iznosRacuna = 0", [korisnikID]
 Koliko sam dobio rezultata u frontednu provjeravam sa racuni.lenght > 1 ili racuni.lenght === 1
 U slucaju da ih je vise onda ide pitanje ej oces spojiti te racune ili ne?
-Ako da potrebno je izbrisati zadnji racun i promjeniti na stavkama racunID
+Ako da potrebno je izbrisati zadnji racun i promjeniti na stavkama racunID RIJESENO
 
 
 U košarici bi se trebalo provjeravati ako je taj proizvod več tamo. Ako je onda samo pribrojiti količinu
@@ -13,7 +13,11 @@ Opet ako se vrati da več postoji taj proizvod tj stavkaracuna.lenght === 1 onda
 [kolicinaProizvoda, ukupnaCijenaProizvoda, stavkeID]
 
 
-Za search je ovo pomoc
+So dodaj na stari racun i onda query napravi da ako ima "select from stavkeracuna where racunID = ? and proizvodID = ?" i onda ako ima dvije ili
+vise stavki s istim proizvodID samo da se zbroje u prvu i obrise druga
+
+
+Za search je ovo pomoc RELATIVNO RIJESENO
 <template>
   <div>
     <q-input

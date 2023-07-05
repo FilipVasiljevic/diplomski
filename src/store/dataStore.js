@@ -8,7 +8,6 @@ export const useDataStore = defineStore("DataStore", {
     createdBill: false,
     billID: "",
     questionAwns: false,
-    items: [],
   }),
   getters: {
     loggedinUser: (state) => {

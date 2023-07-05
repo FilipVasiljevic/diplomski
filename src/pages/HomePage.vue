@@ -76,8 +76,6 @@ export default defineComponent({
       .then((response) => {
         //console.log(response.data);
         this.items = response.data.data;
-        this.store.items = response.data.data;
-        console.log(this.store.items);
         this.items.forEach((item) => {
           //console.log(item.slika.data);
           const bufferData = item.slika.data;
