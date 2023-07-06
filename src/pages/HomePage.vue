@@ -132,15 +132,14 @@ export default defineComponent({
           //const datum = dns.toISOString().slice(0, 19).replace("T", " ");
           if (!this.store.createdBill) {
             if (!this.store.loggedUser) {
-              this.store.createdBill = true;
               axios
                 .post("http://localhost:3000/newBillnoUser")
                 .then((response) => {
                   console.log(response);
                   //this.$q.notify("Stvoren novi racun");
+                  this.store.createdBill = true;
                 });
             } else {
-              this.store.createdBill = true;
               const racun = {
                 korisnikID: this.store.userID,
               };
@@ -149,6 +148,7 @@ export default defineComponent({
                 .then((response) => {
                   //console.log(response);
                   //this.$q.notify("Stvoren novi racun");
+                  this.store.createdBill = true;
                 });
             }
             axios.get("http://localhost:3000/maxBills").then((response) => {
@@ -161,6 +161,7 @@ export default defineComponent({
                 kolicinaProizvoda: kolicina,
                 ukupnaCijenaProizvoda: cijena,
               };
+              console.log(this.maxRacun.racunID);
               axios
                 .get("http://localhost:3000/checkItem", {
                   params: {
@@ -220,6 +221,7 @@ export default defineComponent({
                 kolicinaProizvoda: kolicina,
                 ukupnaCijenaProizvoda: cijena,
               };
+              console.log(this.maxRacun.racunID);
               axios
                 .get("http://localhost:3000/checkItem", {
                   params: {

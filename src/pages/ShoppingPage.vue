@@ -37,7 +37,9 @@
               <q-btn
                 flat
                 color="red"
-                @click="brisiProizvod(shoppingitem.stavkeID)"
+                @click="
+                  brisiProizvod(shoppingitem.stavkeID, shoppingitem.racunID)
+                "
                 >Ukloni iz košarice</q-btn
               >
             </q-card-actions>
@@ -453,7 +455,7 @@ export default defineComponent({
           // console.log('I am triggered on both OK and Cancel')
         });
     },
-    brisiProizvod(id) {
+    brisiProizvod(id, racunID) {
       //console.log(id);
 
       this.$q
@@ -488,6 +490,11 @@ export default defineComponent({
                     if (this.shoppingItems.length === 0) {
                       //console.log("Nema proizvoda u košarici");
                       this.$q.notify("Nema proizvoda u košarici");
+                      axios
+                        .delete("http://localhost:3000/deleteBill/" + racunID)
+                        .then((response) => {
+                          //console.log("Obrisan prazni racun");
+                        });
                     } else {
                       this.shoppingItems.forEach((shoppingItem) => {
                         //console.log(item.slika.data);

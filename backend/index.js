@@ -751,6 +751,21 @@ app.delete("/deleteCartItem/:id", (request, response) => {
   });
 });
 
+app.delete("/deleteBill/:id", (request, response) => {
+  response.set("Access-Control-Allow-Origin", "*");
+  const idRacuna = request.params.id;
+  const query = "DELETE FROM racuni WHERE racunID = ?";
+
+  dbConn.query(query, [idRacuna], (error, results) => {
+    if (error) throw error;
+    if (results.affectedRows > 0) {
+      response.json({ message: "Bill deleted successfully" });
+    } else {
+      response.status(404).json({ error: "Bill not found" });
+    }
+  });
+});
+
 app.listen(3000, function () {
   console.log("Node app is running on port 3000");
 });
