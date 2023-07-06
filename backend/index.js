@@ -39,12 +39,15 @@ app.get("/users", (request, response) => {
 
 app.get("/bills", (request, response) => {
   response.set("Access-Control-Allow-Origin", "*");
-  dbConn.query("SELECT * FROM racuni", function (error, results, fields) {
-    if (error) throw error;
-    const count = results.length;
-    const responseData = { data: { userdata: { results }, count: count } };
-    return response.send(responseData);
-  });
+  dbConn.query(
+    "SELECT * FROM racuni LEFT JOIN korisnici ON racuni.korisnikID = korisnici.korisnikID",
+    function (error, results, fields) {
+      if (error) throw error;
+      const count = results.length;
+      const responseData = { data: { userdata: { results }, count: count } };
+      return response.send(responseData);
+    }
+  );
 });
 
 app.get("/billItems", (request, response) => {

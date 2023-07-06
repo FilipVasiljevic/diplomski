@@ -190,7 +190,31 @@ export default defineComponent({
           .put("http://localhost:3000/closeBill/" + this.racunID)
           .then((response) => {
             //console.log(response.data.data);
-            this.$q.notify("Iznos računa je: " + response.data.data + " €");
+            let seconds = 5;
+            //this.$q.notify("Iznos računa je: " + response.data.data + " €");
+            this.$q
+              .dialog({
+                title: "Iznos računa",
+                message: "Iznos računa je " + response.data.data + " €",
+              })
+              .onOk(() => {
+                // console.log('OK')
+              })
+              .onCancel(() => {
+                // console.log('Cancel')
+              })
+              .onDismiss(() => {
+                clearTimeout(timer);
+                // console.log('I am triggered on both OK and Cancel')
+              });
+
+            const timer = setInterval(() => {
+              seconds--;
+              if (seconds < 1) {
+                clearInterval(timer);
+                dialog.hide();
+              }
+            });
             this.store.billID = "";
             this.store.createdBill = false;
             if (this.store.loggedUser) {
