@@ -154,6 +154,7 @@ export default defineComponent({
             axios.get("http://localhost:3000/maxBills").then((response) => {
               this.maxRacun = response.data.data[0];
               this.store.billID = this.maxRacun.racunID;
+
               var cijena = kolicina * price;
               const stavkaRacuna = {
                 racunID: this.maxRacun.racunID,

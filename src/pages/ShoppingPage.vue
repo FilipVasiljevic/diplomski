@@ -209,14 +209,6 @@ export default defineComponent({
                 clearTimeout(timer);
                 // console.log('I am triggered on both OK and Cancel')
               });
-
-            const timer = setInterval(() => {
-              seconds--;
-              if (seconds < 1) {
-                clearInterval(timer);
-                dialog.hide();
-              }
-            });
             this.store.billID = "";
             this.store.createdBill = false;
             if (this.store.loggedUser) {

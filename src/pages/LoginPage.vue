@@ -103,6 +103,14 @@ export default defineComponent({
 
               axios.get("http://localhost:3000/maxBills").then((response) => {
                 var racun = response.data.data[0];
+                console.log(racun);
+                this.store.billID = racun.racunID;
+                if (racun.iznosRacuna === 0) {
+                  this.store.createdBill = true;
+                  console.log("Racun je 0");
+                } else {
+                  console.log("Pokvaren sam");
+                }
                 if (racun.korisnikID == null) {
                   //console.log("Nema vlasnika racuna");
                   const racunZaUpdate = {
